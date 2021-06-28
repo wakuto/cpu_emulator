@@ -11,6 +11,8 @@ typedef struct {
   u8 mem[1024];
 } CPU;
 
+extern void printreg(CPU *cpu);
+
 enum Inst_type {
   R_TYPE,
   I_TYPE,
@@ -33,6 +35,8 @@ typedef struct {
   u32 result;
 } Inst;
 
+extern void print_inst(Inst *inst);
+
 #define OPECODE(x)   (x & 0x7F)
 #define RD(x)       ((x & (0x1F  << 7 )) >> 7)
 #define FUNCT3(x)   ((x & (0x03  << 12)) >> 12)
@@ -48,7 +52,6 @@ typedef struct {
 #define OPE_R 0x33
 
 #endif
-
 
 extern Inst* fetch(CPU *cpu);
 extern void decode(CPU *cpu, Inst *inst);

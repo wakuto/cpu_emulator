@@ -1,12 +1,13 @@
 #include<stdlib.h>
+#include<stdio.h>
 #include"cpu.h"
 
 Inst* fetch(CPU *cpu) {
   Inst *inst = (Inst*)malloc(sizeof(Inst));
   inst->inst = 0;
-  for(u32 i = 0; i < 4; i++) {
-    inst->inst |= cpu->mem[cpu->pc];
-    inst->inst <<= 8;
+  u32 i = 0;
+  for(i = 0; i < 4; i++) {
+    inst->inst |= cpu->mem[cpu->pc] << (i*8);
     cpu->pc++;
   }
   return inst;
@@ -57,5 +58,6 @@ int writeback(CPU *cpu, Inst *inst) {
       break;
     }
   }
+  free(inst);
 }
 

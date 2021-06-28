@@ -1,9 +1,13 @@
 CC=gcc
 OBJS=main.o\
-	pipeline.o
+	pipeline.o\
+  cpu.o
 
 all: $(OBJS)
-	$(CC) $^
+	$(CC) $^ -o a.out
+
+run:
+	./a.out
 
 clean:
 	rm $(OBJS)
