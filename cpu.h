@@ -4,15 +4,6 @@ typedef unsigned int u32;
 typedef unsigned short u16;
 typedef unsigned char u8;
 
-
-typedef struct {
-  u32 reg[32];
-  u32 pc;
-  u8 mem[1024];
-} CPU;
-
-extern void printreg(CPU *cpu);
-
 enum Inst_type {
   R_TYPE,
   I_TYPE,
@@ -35,7 +26,33 @@ typedef struct {
   u32 result;
 } Inst;
 
+typedef struct {
+  Inst *inst;
+} IFID;
+typedef struct {
+  Inst *inst;
+} IDEX;
+typedef struct {
+  Inst *inst;
+} EXMEM;
+typedef struct {
+  Inst *inst;
+} MEMWB;
+
+typedef struct {
+  u32 reg[32];
+  u32 pc;
+  u8 mem[1024];
+
+  IFID ifid_reg;
+  IDEX idex_reg;
+  EXMEM exmem_reg;
+  MEMWB memwb_reg;
+} CPU;
+
 extern void print_inst(Inst *inst);
+extern void printreg(CPU *cpu);
+
 
 #define OPECODE(x)   (x & 0x7F)
 #define RD(x)       ((x & (0x1F  << 7 )) >> 7)
@@ -49,12 +66,15 @@ extern void print_inst(Inst *inst);
 #define IMM_S(x) (IMM_S5(x) | (IMM_S5(x) << 5))
 
 
+#define OPE_I_LD 0x03
+#define OPE_I_AL 0x13
+#define OPE_S 0x23
 #define OPE_R 0x33
 
-#endif
+extern void fetch(CPU *cpu);
+extern void decode(CPU *cpu);
+extern void execute(CPU *cpu);
+extern int mem_access(CPU *cpu);
+extern int writeback(CPU *cpu);
 
-extern Inst* fetch(CPU *cpu);
-extern void decode(CPU *cpu, Inst *inst);
-extern void execute(Inst *inst);
-extern int mem_access();
-extern int writeback(CPU *cpu, Inst *inst);
+#endif
