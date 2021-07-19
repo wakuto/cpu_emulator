@@ -16,11 +16,49 @@ int main(void) {
   lw x14, 0(x13)
   */
   u32 instruction[] = {
-    0x00a00193,
-    0xfff18193,
-    0xfe019ee3,
-    0x14e00193,
-    0x0000006f
+    0xfe010113,
+    0x00112e23,
+    0x00812c23,
+    0x00912a23,
+    0x02010413,
+    0xfea42623,
+    0xfec42783,
+    0x00078863,
+    0xfec42703,
+    0x00100793,
+    0x00f71663,
+    0xfec42783,
+    0x0300006f,
+    0xfec42783,
+    0xffe78793,
+    0x00078513,
+    0xfc1ff0ef,
+    0x00050493,
+    0xfec42783,
+    0xfff78793,
+    0x00078513,
+    0xfadff0ef,
+    0x00050793,
+    0x00f487b3,
+    0x00078513,
+    0x01c12083,
+    0x01812403,
+    0x01412483,
+    0x02010113,
+    0x00008067,
+    0xfe010113,
+    0x00112e23,
+    0x00812c23,
+    0x02010413,
+    0x20000793,
+    0xfef42623,
+    0x00600513,
+    0xf6dff0ef,
+    0x00050713,
+    0xfec42783,
+    0x00e7a023,
+    0x0000006f,
+    0xfd1ff0ef
   };
   /*
 
@@ -40,13 +78,13 @@ int main(void) {
   for(j = 0; j < inst_count; j++) {
     for(i = 0; i < 4; i++) {
       cpu->mem[i + j*4] = (u8)(instruction[j] >> (i*8));
-      printf("%02x", cpu->mem[i]);
+      printf("%02x", cpu->mem[i+j*4]);
     }
+    puts("");
   }
   puts("");
-  cpu->pc = 0;
+  cpu->reg[2] = 1024;
   /*
-  cpu->reg[1] = 1000;
   cpu->reg[2] = 5;
   cpu->reg[11] = 3;
   cpu->reg[12] = 0;
@@ -54,7 +92,10 @@ int main(void) {
 
   printreg(cpu);
 
-  for(cpu->pc = 0; cpu->pc < MEM_SIZE; ) {
+  for(cpu->pc = 0xa8; cpu->pc < MEM_SIZE; ) {
+    if(cpu->pc >= 0xa0) {
+      getchar();
+    }
     puts("-------------------------");
     fetch(cpu);
 
@@ -68,7 +109,8 @@ int main(void) {
     writeback(cpu);
 
     printreg(cpu);
-    getchar();
+
+    printf("512:%x, %u\n", cpu->mem[512], cpu->mem[512]);
   }
   return 0;
 }

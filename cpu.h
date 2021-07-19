@@ -59,7 +59,7 @@ extern void printreg(CPU *cpu);
 
 #define OPECODE(x)   (x & 0x7F)
 #define RD(x)       ((x & (0x1F  << 7 )) >> 7)
-#define FUNCT3(x)   ((x & (0x03  << 12)) >> 12)
+#define FUNCT3(x)   ((x & (0x07  << 12)) >> 12)
 #define RS1(x)      ((x & (0x1F  << 15)) >> 15)
 #define RS2(x)      ((x & (0x1F  << 20)) >> 20)
 // R type
@@ -71,7 +71,7 @@ extern void printreg(CPU *cpu);
 #define IMM_S11_5(x)  ((x & (0x7F  << 25)) >> 25)
 #define IMM_S(x) ((IMM_S11_5(x) << 5) | (IMM_S4_0(x)))
 // B type
-#define IMM_B12(x)   (x & 0xF0000000)
+#define IMM_B12(x)   ((x & (0x01 << 31)) >> 31)
 #define IMM_B10_5(x) ((x & (0x3F << 25)) >> 25)
 #define IMM_B4_1(x)  ((x & (0x0F << 8 )) >> 8)
 #define IMM_B11(x)   ((x & (0x01 << 7 )) >> 7)

@@ -70,13 +70,8 @@ void decode(CPU *cpu) {
       break;
     }
     default: {
-      // 不明な命令はaddi x0, x0, 0に変換
-      inst->rd = 0;
-      inst->rs1 = cpu->reg[0];
-      inst->funct3 = 0x00;
-      inst->imm = 0;
-      inst->type = I_TYPE;
-      inst->opecode = OPE_I_AL;
+      fprintf(stderr, "invalid instruction:%x", ins);
+      exit(1);
       break;
     }
   }
@@ -132,31 +127,39 @@ void execute(CPU *cpu) {
     case OPE_B: {
       switch(inst->funct3) {
         case 0x00: {  // beq
+          printf("%d == %d\n", inst->rs1, inst->rs2);
           if(inst->rs1 == inst->rs2) inst->result = sign_extend(inst->imm, 12)-4;
           else inst->result = 0;
           break;
         }
         case 0x01: {  // bne
+          printf("%d != %d\n", inst->rs1, inst->rs2);
           if(inst->rs1 != inst->rs2) inst->result = sign_extend(inst->imm, 12)-4;
           else inst->result = 0;
           break;
         }
         case 0x04: {  // blt
-          if((i32)inst->rs1 < (i32)inst->rs2) inst->result = sign_extend(inst->imm, 12)-4;
+          printf("%d < %d\n", inst->rs1, inst->rs2);
+          if((i32)inst->rs1 < (i32)inst->rs2)
+            inst->result = sign_extend(inst->imm, 12)-4;
           else inst->result = 0;
           break;
         }
         case 0x05: {  // bge
-          if((i32)inst->rs1 >= (i32)inst->rs2) inst->result = sign_extend(inst->imm, 12)-4;
+          printf("%d >= %d\n", inst->rs1, inst->rs2);
+          if((i32)inst->rs1 >= (i32)inst->rs2)
+            inst->result = sign_extend(inst->imm, 12)-4;
           else inst->result = 0;
           break;
         }
         case 0x06: {  // bltu
+          printf("%d < %d\n", inst->rs1, inst->rs2);
           if(inst->rs1 < inst->rs2) inst->result = sign_extend(inst->imm, 12)-4;
           else inst->result = 0;
           break;
         }
         case 0x07: {  // bgeu
+          printf("%d >= %d\n", inst->rs1, inst->rs2);
           if(inst->rs1 >= inst->rs2) inst->result = sign_extend(inst->imm, 12)-4;
           else inst->result = 0;
           break;
@@ -209,6 +212,7 @@ int mem_access(CPU *cpu) {
     }
     case OPE_S: {
       u32 addr = inst->result;
+      printf("ST: %08x->%08x\n", addr, inst->rs2);
       switch(inst->funct3) {
         case 0x02: {  // sw
           cpu->mem[addr+3] = inst->rs2 >> 24;
@@ -241,13 +245,13 @@ int writeback(CPU *cpu) {
       break;
     }
     case OPE_I_JA: {  // ジャンプ
-      u32 tmp = cpu->pc + 4;
+      u32 tmp = cpu->pc;
       cpu->pc = inst->result;
       cpu->reg[inst->rd] = tmp;
       break;
     }
     case OPE_J: {
-      cpu->reg[inst->rd] = cpu->pc + 4;
+      cpu->reg[inst->rd] = cpu->pc;
       cpu->pc += inst->result;
       break;
     }

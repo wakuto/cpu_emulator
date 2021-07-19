@@ -27,5 +27,7 @@ void print_inst(Inst *inst) {
   printf("rs2    : %08x, %u\n", inst->rs2, inst->rs2);
   printf("imm    : %04x, %u\n", inst->imm, inst->imm);
   printf("immext : %08x, %d\n", ext(inst->imm, 12), ext(inst->imm, 12));
+  printf("funct3 : %08x, %u\n", inst->funct3, inst->funct3);
+  printf("funct7 : %08x, %u\n", inst->funct7, inst->funct7);
   printf("result : %08x, %u\n", inst->result, inst->result);
 }
