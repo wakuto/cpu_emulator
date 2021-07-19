@@ -16,12 +16,25 @@ int main(void) {
   lw x14, 0(x13)
   */
   u32 instruction[] = {
-    0xB50633,
-    0x40B606B3,
-    0b11111111101101101000011010010011,
-    0b00000000110001101010000000100011,
-    0b00000000000001101010011100000011
-    };
+    0x00a00193,
+    0xfff18193,
+    0xfe019ee3,
+    0x14e00193,
+    0x0000006f
+  };
+  /*
+
+    //0x00 addi x2, x0, 1
+    0b00000000000100000000000100010011,
+    //0x04 addi x3, x0, 1
+    0b00000000000100000000000110010011,
+    //0x08 add x2, x2, x3
+    0b00000000001100010000000100110011,
+    //0x0c add x3, x2, x3
+    0b00000000001100010000000110110011,
+    //0x10 jalr x1, 8(x0)
+    0b00000000100000000000000011100111
+    };*/
   u32 inst_count = sizeof(instruction)/sizeof(u32);
   // 命令の書き込み
   for(j = 0; j < inst_count; j++) {
@@ -32,14 +45,16 @@ int main(void) {
   }
   puts("");
   cpu->pc = 0;
-  cpu->reg[2] = 1000;
-  cpu->reg[10] = 5;
+  /*
+  cpu->reg[1] = 1000;
+  cpu->reg[2] = 5;
   cpu->reg[11] = 3;
   cpu->reg[12] = 0;
+  */
 
   printreg(cpu);
 
-  for(j = 0; j < inst_count; j++) {
+  for(cpu->pc = 0; cpu->pc < MEM_SIZE; ) {
     puts("-------------------------");
     fetch(cpu);
 
@@ -53,6 +68,7 @@ int main(void) {
     writeback(cpu);
 
     printreg(cpu);
+    getchar();
   }
   return 0;
 }

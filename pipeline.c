@@ -2,7 +2,7 @@
 #include<stdio.h>
 #include"cpu.h"
 
-u32 sign_extend(u16 imm, u8 len) {
+u32 sign_extend(u32 imm, u8 len) {
   u32 mask = 0xFFFFFFFF << (len-1);
   u32 res = 0;
   if(imm & (0x01 << (len-1))) {
@@ -39,6 +39,7 @@ void decode(CPU *cpu) {
       inst->type = R_TYPE;
       break;
     }
+    case OPE_I_JA:
     case OPE_I_LD:
     case OPE_I_AL: {
       inst->rd = RD(ins);
@@ -54,6 +55,28 @@ void decode(CPU *cpu) {
       inst->rs1 = cpu->reg[RS1(ins)];
       inst->rs2 = cpu->reg[RS2(ins)];
       inst->type = S_TYPE;
+      break;
+    }
+    case OPE_J: {
+      inst->imm = IMM_J(ins);
+      inst->rd = RD(ins);
+      break;
+    }
+    case OPE_B: {
+      inst->imm = IMM_B(ins);
+      inst->rs2 = cpu->reg[RS2(ins)];
+      inst->rs1 = cpu->reg[RS1(ins)];
+      inst->funct3 = FUNCT3(ins);
+      break;
+    }
+    default: {
+      // 不明な命令はaddi x0, x0, 0に変換
+      inst->rd = 0;
+      inst->rs1 = cpu->reg[0];
+      inst->funct3 = 0x00;
+      inst->imm = 0;
+      inst->type = I_TYPE;
+      inst->opecode = OPE_I_AL;
       break;
     }
   }
@@ -89,8 +112,59 @@ void execute(CPU *cpu) {
       inst->result = inst->rs1 + sign_extend(inst->imm, 12);
       break;
     }
+    case OPE_I_JA: {  // ジャンプ
+      switch(inst->funct3) {
+        case 0x00: {  // JALR
+          inst->result = cpu->reg[inst->rs1] + sign_extend(inst->imm, 12)-4;
+          inst->result &= ~0x01;
+          break;
+        }
+      }
+    }
     case OPE_S: {
       inst->result = inst->rs1 + sign_extend(inst->imm, 12);
+      break;
+    }
+    case OPE_J: {
+      inst->result = sign_extend(inst->imm, 20)-4;
+      break;
+    }
+    case OPE_B: {
+      switch(inst->funct3) {
+        case 0x00: {  // beq
+          if(inst->rs1 == inst->rs2) inst->result = sign_extend(inst->imm, 12)-4;
+          else inst->result = 0;
+          break;
+        }
+        case 0x01: {  // bne
+          if(inst->rs1 != inst->rs2) inst->result = sign_extend(inst->imm, 12)-4;
+          else inst->result = 0;
+          break;
+        }
+        case 0x04: {  // blt
+          if((i32)inst->rs1 < (i32)inst->rs2) inst->result = sign_extend(inst->imm, 12)-4;
+          else inst->result = 0;
+          break;
+        }
+        case 0x05: {  // bge
+          if((i32)inst->rs1 >= (i32)inst->rs2) inst->result = sign_extend(inst->imm, 12)-4;
+          else inst->result = 0;
+          break;
+        }
+        case 0x06: {  // bltu
+          if(inst->rs1 < inst->rs2) inst->result = sign_extend(inst->imm, 12)-4;
+          else inst->result = 0;
+          break;
+        }
+        case 0x07: {  // bgeu
+          if(inst->rs1 >= inst->rs2) inst->result = sign_extend(inst->imm, 12)-4;
+          else inst->result = 0;
+          break;
+        }
+      }
+      break;
+    }
+    default: {
       break;
     }
   }
@@ -166,7 +240,23 @@ int writeback(CPU *cpu) {
       cpu->reg[inst->rd] = inst->result;
       break;
     }
+    case OPE_I_JA: {  // ジャンプ
+      u32 tmp = cpu->pc + 4;
+      cpu->pc = inst->result;
+      cpu->reg[inst->rd] = tmp;
+      break;
+    }
+    case OPE_J: {
+      cpu->reg[inst->rd] = cpu->pc + 4;
+      cpu->pc += inst->result;
+      break;
+    }
+    case OPE_B: {
+      cpu->pc += inst->result;
+      break;
+    }
   }
+  cpu->reg[0] = 0;
   free(inst);
 }
 
