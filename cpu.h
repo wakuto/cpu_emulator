@@ -11,6 +11,8 @@ enum Inst_type {
   S_TYPE
 };
 
+#define MMIO 0x100000
+
 typedef struct {
   u32 inst;
   enum Inst_type type;
@@ -77,7 +79,7 @@ extern void printreg(CPU *cpu);
 #define IMM_B11(x)   ((x & (0x01 << 7 )) >> 7)
 #define IMM_B(x) ((IMM_B12(x) << 12) | (IMM_B11(x) << 11) | (IMM_B10_5(x) << 5) | (IMM_B4_1(x) << 1))
 // U type
-#define IMM_U(x)     ((x & (0xFFFFF << 12)) >> 12)
+#define IMM_U(x)      ((x & (0xFFFFF << 12)) >> 12)
 // J type
 #define IMM_J20(x)    ((x & (0x01 << 31)) >> 31)
 #define IMM_J10_1(x)  ((x & (0x3FF << 21)) >> 21)
@@ -95,6 +97,8 @@ extern void printreg(CPU *cpu);
 #define OPE_I_JA 0x67
 #define OPE_J 0x6F
 #define OPE_B 0x63
+#define OPE_U_LUI 0x37
+#define OPE_U_AUI 0x17
 
 extern void fetch(CPU *cpu);
 extern void decode(CPU *cpu);
@@ -102,4 +106,7 @@ extern void execute(CPU *cpu);
 extern int mem_access(CPU *cpu);
 extern int writeback(CPU *cpu);
 
+extern void memwrite(CPU *cpu, u32 addr, u8 data);
+extern u8 memread(CPU *cpu, u32 addr);
+extern u32 sign_extend(u32 imm, u8 len);
 #endif

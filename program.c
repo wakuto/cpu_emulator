@@ -1,12 +1,19 @@
-int fibonacci(int n) {
-  if(n == 0 || n == 1)
-    return n;
-  else
-    return fibonacci(n - 2) + fibonacci(n - 1);
+#define MMIO 0x100000
+
+void putch(char c) {
+  volatile char *out = (char *)MMIO;
+  *out = c;
 }
+
+void putstr(char *str) {
+  int i = 0;
+  for(i = 0; str[i] != 0; i++) {
+    putch(str[i]);
+  }
+}
+
 int main(void) {
-  int *x = (int*)512;
-  *x = fibonacci(6);
+  putstr("Hello World!\n");
   for(;;) {}
   return 0;
 }

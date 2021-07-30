@@ -18,7 +18,7 @@ void fetch(CPU *cpu) {
   inst->inst = 0;
   u32 i = 0;
   for(i = 0; i < 4; i++) {
-    inst->inst |= cpu->mem[cpu->pc] << (i*8);
+    inst->inst |= memread(cpu, cpu->pc) << (i*8);
     cpu->pc++;
   }
   cpu->ifid_reg.inst = inst;
@@ -69,8 +69,18 @@ void decode(CPU *cpu) {
       inst->funct3 = FUNCT3(ins);
       break;
     }
+    case OPE_U_LUI: {
+      inst->imm = IMM_U(ins);
+      inst->rd = RD(ins);
+      break;
+    }
+    case OPE_U_AUI: {
+      inst->imm = IMM_U(ins);
+      inst->rd = RD(ins);
+      break;
+    }
     default: {
-      fprintf(stderr, "invalid instruction:%x", ins);
+      fprintf(stderr, "invalid instruction@%08x:%08x\n", cpu->pc, ins);
       exit(1);
       break;
     }
@@ -127,44 +137,46 @@ void execute(CPU *cpu) {
     case OPE_B: {
       switch(inst->funct3) {
         case 0x00: {  // beq
-          printf("%d == %d\n", inst->rs1, inst->rs2);
           if(inst->rs1 == inst->rs2) inst->result = sign_extend(inst->imm, 12)-4;
           else inst->result = 0;
           break;
         }
         case 0x01: {  // bne
-          printf("%d != %d\n", inst->rs1, inst->rs2);
           if(inst->rs1 != inst->rs2) inst->result = sign_extend(inst->imm, 12)-4;
           else inst->result = 0;
           break;
         }
         case 0x04: {  // blt
-          printf("%d < %d\n", inst->rs1, inst->rs2);
           if((i32)inst->rs1 < (i32)inst->rs2)
             inst->result = sign_extend(inst->imm, 12)-4;
           else inst->result = 0;
           break;
         }
         case 0x05: {  // bge
-          printf("%d >= %d\n", inst->rs1, inst->rs2);
           if((i32)inst->rs1 >= (i32)inst->rs2)
             inst->result = sign_extend(inst->imm, 12)-4;
           else inst->result = 0;
           break;
         }
         case 0x06: {  // bltu
-          printf("%d < %d\n", inst->rs1, inst->rs2);
           if(inst->rs1 < inst->rs2) inst->result = sign_extend(inst->imm, 12)-4;
           else inst->result = 0;
           break;
         }
         case 0x07: {  // bgeu
-          printf("%d >= %d\n", inst->rs1, inst->rs2);
           if(inst->rs1 >= inst->rs2) inst->result = sign_extend(inst->imm, 12)-4;
           else inst->result = 0;
           break;
         }
       }
+      break;
+    }
+    case OPE_U_LUI: {
+      inst->result = sign_extend(inst->imm, 20) << 12;
+      break;
+    }
+    case OPE_U_AUI: {
+      inst->result = sign_extend(inst->imm, 20);
       break;
     }
     default: {
@@ -182,29 +194,29 @@ int mem_access(CPU *cpu) {
       inst->result = 0;
       switch(inst->funct3) {
         case 0x00: {  // lb
-          inst->result |= cpu->mem[addr];
+          inst->result |= memread(cpu, addr);
           inst->result = sign_extend(inst->result, 8);
           break;
         }
         case 0x01: {  // lh
-          inst->result |= cpu->mem[addr];
-          inst->result |= cpu->mem[addr+1] << 8;
+          inst->result |= memread(cpu, addr);
+          inst->result |= memread(cpu, addr+1) << 8;
           inst->result = sign_extend(inst->result, 16);
           break;
         }
         case 0x02: { // lw
-          inst->result |= cpu->mem[addr];
-          inst->result |= cpu->mem[addr+1] << 8;
-          inst->result |= cpu->mem[addr+2] << 16;
-          inst->result |= cpu->mem[addr+3] << 24;
+          inst->result |= memread(cpu, addr);
+          inst->result |= memread(cpu, addr+1) << 8;
+          inst->result |= memread(cpu, addr+2) << 16;
+          inst->result |= memread(cpu, addr+3) << 24;
           break;
         }
 
         case 0x05: {  // lhu
-          inst->result |= cpu->mem[addr+1] << 8;
+          inst->result |= memread(cpu, addr+1) << 8;
         }
         case 0x04: {  // lbu
-          inst->result |= cpu->mem[addr];
+          inst->result |= memread(cpu, addr);
           break;
         }
       }
@@ -212,17 +224,16 @@ int mem_access(CPU *cpu) {
     }
     case OPE_S: {
       u32 addr = inst->result;
-      printf("ST: %08x->%08x\n", addr, inst->rs2);
       switch(inst->funct3) {
         case 0x02: {  // sw
-          cpu->mem[addr+3] = inst->rs2 >> 24;
-          cpu->mem[addr+2] = inst->rs2 >> 16;
+          memwrite(cpu, addr+3, inst->rs2 >> 24);
+          memwrite(cpu, addr+2, inst->rs2 >> 16);
         }
         case 0x01: {  // sh
-          cpu->mem[addr+1] = inst->rs2 >> 8;
+          memwrite(cpu, addr+1, inst->rs2 >> 8);
         }
         case 0x00: {  // sb
-          cpu->mem[addr] = inst->rs2;
+          memwrite(cpu, addr, inst->rs2);
           break;
         }
       }
@@ -257,6 +268,14 @@ int writeback(CPU *cpu) {
     }
     case OPE_B: {
       cpu->pc += inst->result;
+      break;
+    }
+    case OPE_U_LUI: {
+      cpu->reg[inst->rd] = inst->result;
+      break;
+    }
+    case OPE_U_AUI: {
+      cpu->pc += inst->result - 4;
       break;
     }
   }
