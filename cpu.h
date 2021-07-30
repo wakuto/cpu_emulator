@@ -103,8 +103,8 @@ extern void printreg(CPU *cpu);
 extern void fetch(CPU *cpu);
 extern void decode(CPU *cpu);
 extern void execute(CPU *cpu);
-extern int mem_access(CPU *cpu);
-extern int writeback(CPU *cpu);
+extern void mem_access(CPU *cpu);
+extern void writeback(CPU *cpu);
 
 extern void memwrite(CPU *cpu, u32 addr, u8 data);
 extern u8 memread(CPU *cpu, u32 addr);

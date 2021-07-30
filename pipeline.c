@@ -186,7 +186,7 @@ void execute(CPU *cpu) {
   cpu->exmem_reg.inst = inst;
 }
 
-int mem_access(CPU *cpu) {
+void mem_access(CPU *cpu) {
   Inst *inst = cpu->exmem_reg.inst;
   switch(inst->opecode) {
     case OPE_I_LD: {
@@ -243,7 +243,7 @@ int mem_access(CPU *cpu) {
   cpu->memwb_reg.inst = inst;
 }
 
-int writeback(CPU *cpu) {
+void writeback(CPU *cpu) {
   Inst *inst = cpu->memwb_reg.inst;
   switch(inst->opecode) {
     case OPE_R: {
