@@ -5,17 +5,10 @@ typedef unsigned short u16;
 typedef unsigned char u8;
 typedef signed int i32;
 
-enum Inst_type {
-  R_TYPE,
-  I_TYPE,
-  S_TYPE
-};
-
-#define MMIO 0x100000
+#define UART 0x10000000
 
 typedef struct {
   u32 inst;
-  enum Inst_type type;
 
   u8 opecode;
   u8 rd;
@@ -23,6 +16,7 @@ typedef struct {
   u32 rs1;
   u32 rs2;
   u8 funct7;
+  u8 shamt;
 
   u32 imm;
 
@@ -37,12 +31,15 @@ typedef struct {
 } IDEX;
 typedef struct {
   Inst *inst;
+  u32 jump_flag;
 } EXMEM;
 typedef struct {
   Inst *inst;
+  u32 jump_flag;
 } MEMWB;
 
-#define MEM_SIZE 1024
+// memory: 4kB
+#define MEM_SIZE 0x1000
 
 typedef struct {
   u32 reg[32];
@@ -68,6 +65,7 @@ extern void printreg(CPU *cpu);
 #define FUNCT7(x)   ((x & (0x7F  << 25)) >> 25)
 // I type
 #define IMM_I(x)    ((x & (0xFFF << 20)) >> 20)
+#define SHAMT(x)    RS2(x)
 // S type
 #define IMM_S4_0(x)   ((x & (0x1F  << 7 )) >> 7)
 #define IMM_S11_5(x)  ((x & (0x7F  << 25)) >> 25)
@@ -100,6 +98,7 @@ extern void printreg(CPU *cpu);
 #define OPE_U_LUI 0x37
 #define OPE_U_AUI 0x17
 
+extern void mutex_init(void);
 extern void fetch(CPU *cpu);
 extern void decode(CPU *cpu);
 extern void execute(CPU *cpu);
