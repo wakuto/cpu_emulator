@@ -41,7 +41,7 @@ u8 memread(CPU *cpu, u32 addr) {
     u8 res = cpu->mem[addr];
     pthread_mutex_unlock(&memory_mutex);
     return res;
-  } else if(addr == (UART | 0x004)) {
+  } else if(addr == (UART | 0x000)) {
     // rxdata
     char c = getc(stdin);
     return c;

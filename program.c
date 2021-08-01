@@ -11,7 +11,7 @@ void putch(char c) {
 }
 
 char getch() {
-  volatile char *in = (volatile char *)(UART | 0x004);
+  volatile char *in = (volatile char *)(UART | 0x000);
   char c = *in;
   if(c == '\b' || c == 0x7F) {
     putch('\b');
