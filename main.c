@@ -54,7 +54,7 @@ int main(void) {
   // stackの初期化
   cpu->reg[2] = MEM_SIZE-4;
   // entry pointの設定
-  u32 entry_point = 0x280;
+  u32 entry_point = 0x2e8;
   cpu->pc = entry_point;
   mutex_init();
 

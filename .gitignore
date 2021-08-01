@@ -3,3 +3,4 @@
 *.elf
 *.bin
 program
+rv32i_emu

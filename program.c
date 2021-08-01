@@ -13,7 +13,12 @@ void putch(char c) {
 char getch() {
   volatile char *in = (volatile char *)(UART | 0x004);
   char c = *in;
-  putch(c);
+  if(c == '\b' || c == 0x7F) {
+    putch('\b');
+    putch(' ');
+    putch('\b');
+    c = '\b';
+  } else putch(c);
   return c;
 }
 
@@ -21,9 +26,17 @@ void getstr(char *buf, int len) {
   int i = 0;
   while(i < len-1) {
     buf[i] = getch();
-    if(buf[i] == '\n' || buf[i] == '\r') {
-      buf[i] = '\0';
-      return;
+    switch(buf[i]) {
+      case '\n':
+      case '\r': {
+        buf[i] = '\0';
+        return;
+      }
+      case '\b': {
+        i -= 2;
+        break;
+      }
+      default: break;
     }
     i++;
   }
@@ -45,8 +58,11 @@ void putstrn(char *str) {
 int main(void) {
   unsigned int len = 256;
   char buf[len];
+  putstr("what's your name? >>> ");
   getstr(buf, len);
-  putstrn(buf);
+  putstr("Hi ");
+  putstr(buf);
+  putstrn("!");
   for(;;) {}
   return 0;
 }

@@ -6,7 +6,7 @@ OBJS=main.o\
 CFLAGS=-Wall -pthread -fsanitize=thread
 
 all: $(OBJS)
-	$(CC) $(CFLAGS) $^ -o a.out
+	$(CC) $(CFLAGS) $^ -o rv32i_emu
 
 prog_asm: 
 	riscv32-unknown-elf-gcc -c program.S -o program.o
