@@ -13,12 +13,6 @@ void putch(char c) {
 char getch() {
   volatile char *in = (volatile char *)(UART | 0x000);
   char c = *in;
-  if(c == '\b' || c == 0x7F) {
-    putch('\b');
-    putch(' ');
-    putch('\b');
-    c = '\b';
-  } else putch(c);
   return c;
 }
 
@@ -29,14 +23,20 @@ void getstr(char *buf, int len) {
     switch(buf[i]) {
       case '\n':
       case '\r': {
+        putch('\n');
         buf[i] = '\0';
         return;
       }
+      case 0x7F:
       case '\b': {
-        i -= 2;
+        if(i < 1) i -= 1;
+        else {
+          i -= 2;
+          putstr("\b \b");
+        }
         break;
       }
-      default: break;
+      default: putch(buf[i]); break;
     }
     i++;
   }
